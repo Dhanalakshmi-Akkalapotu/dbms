@@ -1,0 +1,3 @@
+arya 45
+dhana 20
+sweety 22
