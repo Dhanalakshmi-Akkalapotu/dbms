@@ -150,3 +150,83 @@ CREATE TABLE Student (
 );
 Learn defining custom exceptions in Python in this reference
 
+
+
+class DoesNotExist(Exception):
+    pass
+class MultipleObjectsReturned(Exception):
+    pass
+class InvalidField(Exception):
+    pass
+
+class Student:
+    
+    def __init__(self, name, age, score):
+        self.name = name
+        self.student_id = None
+        self.age = age
+        self.score = score
+    
+    @classmethod    
+    def get(cls,**keys):
+        for k,v in keys.items():
+            cls.k=k
+            cls.v=v
+        if k not in ('student_id','name','age','score'):
+            raise InvalidField
+            
+        sql_query="select * from student where {}='{}'".format(cls.k,cls.v)
+        k=read_data(sql_query)
+        
+        if len(k)==0:
+            raise DoesNotExist
+        elif len(k)>1:
+            raise MultipleObjectsReturned
+        else:    
+            b=Student(k[0][1],k[0][2],k[0][3])
+            b.student_id=k[0][0]
+            return b  
+            
+    def delete(self):
+        sql_query=("Delete from student where student_id={}".format(self.student_id))
+        write_data(sql_query)
+        
+    def save(self):
+        import sqlite3
+        connection = sqlite3.connect("students.sqlite3") 
+        crsr = connection.cursor()
+        if self.student_id==None:
+    
+            crsr.execute("INSERT INTO student values(:student_id,:name,:age,:score)",{'student_id':self.student_id,'name':self.name,'age':self.age,'score':self.score})
+            self.student_id=crsr.lastrowid
+            #write_data(sql_query)
+        else:    
+            crsr.execute(f"UPDATE student SET name = \'{self.name}\', age = {self.age},score = {self.score} where student_id = {self.student_id}")
+            #write_data(sql_query)        
+        connection.commit()
+        
+        
+def write_data(sql_query):
+	import sqlite3
+	connection = sqlite3.connect("students.sqlite3")
+	crsr = connection.cursor() 
+	crsr.execute("PRAGMA foreign_keys=on;") 
+	crsr.execute(sql_query) 
+	connection.commit() 
+	connection.close()
+
+def read_data(sql_query):
+	import sqlite3
+	connection = sqlite3.connect("students.sqlite3")
+	crsr = connection.cursor() 
+	crsr.execute(sql_query) 
+	ans= crsr.fetchall()  
+	connection.close() 
+	return ans   
+
+
+
+
+
+
+
